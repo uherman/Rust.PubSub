@@ -1,6 +1,6 @@
 #[macro_use] extern crate rocket;
-#[macro_use] extern crate dotenv_codegen;
 
+use std::env;
 use dotenv::dotenv;
 use redis::Commands;
 
@@ -11,10 +11,14 @@ fn index() -> &'static str {
 
 #[get("/publish/<channel>/<message>")]
 fn publish(channel : &str,message : &str) {
-    let client: redis::Client = redis::Client::open(dotenv!("REDIS")).unwrap();
+    let client: redis::Client = redis::Client::open(redis_url()).unwrap();
     let mut conn: redis::Connection = client.get_connection().unwrap();
 
     let _: () = conn.publish(channel, message).unwrap();
+}
+
+fn redis_url() -> String {
+    env::var("REDIS").unwrap_or_default()
 }
 
 #[launch]
